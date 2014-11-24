@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class FileProcess {
 
@@ -104,14 +106,43 @@ public class FileProcess {
 		return transURL;
 	}
 	
-	public static String generateSubFolder(String originalURL,
-			String targetFolder) {
-		String subFolderName = fileNameTransform(originalURL);
+	public static String fileNameTransform_MD5(String URL) throws NoSuchAlgorithmException{
+		// 	TODO transform the url to be a MD5 code 
+		byte[] bytesOfMessage = URL.getBytes();
+		
+		MessageDigest md = MessageDigest.getInstance("MD5");		
+		md.update(bytesOfMessage);		
+		byte[] resultByteArray = md.digest();
+		
+		StringBuffer sb = new StringBuffer();
+	    for (int i = 0; i < resultByteArray.length; i++)
+	        sb.append(Integer.toString((resultByteArray[i] & 0xff) + 0x100, 16).substring(1));
+
+		String transURL = sb.toString();
+
+		return transURL;
+	}
+	
+	public static String generateSubFolderPath(String originalURL,
+			String targetFolder) throws NoSuchAlgorithmException {
+		String subFolderName = fileNameTransform_MD5(originalURL);
 		// not using JAVA 7 API
 		File dir = new File(targetFolder, subFolderName);
 		dir.mkdir();
 		return dir.getAbsolutePath();
 	}
+	
+	public static File generateSubFolder(String originalURL,
+			String targetFolder) throws NoSuchAlgorithmException {
+		String subFolderName = fileNameTransform_MD5(originalURL);
+		// not using JAVA 7 API
+		File dir = new File(targetFolder, subFolderName);
+		
+		// TODO avoid the problem that the MD5 conflict, needed?
+		
+		dir.mkdir();
+		return dir;
+	}	
 	
 	public static void addLinetoaFile(String line, String filePath) {
 		FileWriter fw = null;

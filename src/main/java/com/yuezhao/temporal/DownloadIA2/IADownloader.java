@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -134,6 +135,7 @@ public class IADownloader {
 			    // 	Read the input stream of the entity
 			    //	Transfer it in to the file with html format
 			    String fileName = url.substring(27, 40);
+			    //	Now it runs well, but I am not sure is the path like subTargetFolder + fileName + ".html" is good enough.
 			    String htmlFilePath = subTargetFolder + fileName + ".html";
 			   	BufferedInputStream bis = new BufferedInputStream(inSm);
 			   	BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(htmlFilePath)));
@@ -149,26 +151,32 @@ public class IADownloader {
 	}
 	
 	public static boolean downloadAllVersions(String originalURL,
-			String targetFolder, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException {
+			String targetFolder, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException {
 		// 	Use wayback machine get feedback from IA
-		JSONArray feedback = wayback(originalURL, startTime, endTime);		
+		JSONArray feedback = wayback(originalURL, startTime, endTime);
+		
 		//	If there is no feedback, return
 		if (feedback.length() < 1 || feedback == null) {
 			return false;
 		} else {		
 			//	Generate urls belongs to IA based on the feedback
-			List<String> urlsIA = generateIAurls(feedback);		
+			List<String> urlsIA = generateIAurls(feedback);
+			
 			//	Generate the sub-folder of this url in the target folder
-			String subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);		
+			File subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);		
+			String subTargetFolderPath = subTargetFolder.getAbsolutePath();
+			
 			//	Download Pages from IA based on the URLs we generate.
-			downloadPages(urlsIA, subTargetFolder);
-			writeDownFeatures(originalURL, feedback.length(), urlsIA.size(), feedback, targetFolder);
+			downloadPages(urlsIA, subTargetFolderPath);
+			
+			//	Write Down the features of the URL
+			writeDownFeatures(subTargetFolder.getName(), originalURL, feedback.length(), urlsIA.size(), feedback, targetFolder);
 			return true;
 		}
 	}
 
 
-	private static void writeDownFeatures(String originalURL, int length,
+	private static void writeDownFeatures(String folderName, String originalURL, int length,
 			int size, JSONArray feedback, String targetFolder) {
 		// 	For the JSON array we get from Internet Archive
 		// 	The first element is the field name of the later data.
@@ -184,11 +192,12 @@ public class IADownloader {
 		
 		// Generate features
 		String features = "[" +
-				originalURL +", " + 
+				folderName + ", " + 
 				length + ", " + 
 				size + ", " + 
 				feedback.getJSONArray(1).get(index_Timestamp).toString() + ", " + 
-				feedback.getJSONArray(length-1).get(index_Timestamp).toString() +				
+				feedback.getJSONArray(length-1).get(index_Timestamp).toString() + ", " + 
+				originalURL +
 				"]";
 		
 		//	Write Features to the targetFolder
