@@ -1,5 +1,7 @@
 This code is used for downloading all versions of pages based on URL.
 
+To Claudia: Please use the data urls_clueweb12_2. If there is something wrong, please copy the error log to me. Thanks. 
+
 --Usage--
 
 1. mvn compile
@@ -29,10 +31,12 @@ java -jar DownloadIA2-0.0.3-SNAPSHOT.jar D:\workspace\DownloadIA2\urls_clueweb12
 --VERSIONS--
 
 0.0.3
+
 1. Change the input from a folder including many clueweb files to a particular url file.
 2. Add 1's waiting time between each request. 
 
 0.0.2
+
 1. FileProcess.fileNameTransform 
 Use hash method to name the sub dir of each url, which may be good for search in the next step.
 Method: I use MD5 to hash the url so that I can make the sub dirs have names with the same length. Besides, I record the MD5 codes in the features with the original URLs, so that I can chech the list to know which url a particular MD5 code represents.
