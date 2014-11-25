@@ -2,9 +2,15 @@ This code is used for downloading all versions of pages based on URL.
 
 --Usage--
 
-Java -jar DownloadIA2-0.0.1-SNAPSHOT.jar [Source Dir] [Target Dir] [Start Time] [End Time]
+1. mvn compile
 
-Souce Dir: the absolute path of the directory clueweb12-docids-relevant-output
+2. mvn clean package -Dmaven.test.skip=true
+
+Skip the test because the AppTest.class is not implemented.
+
+3. java -jar DownloadIA2-0.0.3-SNAPSHOT.jar [Source File Path] [Target Dir] [Start Time] [End Time]
+
+Souce File Path: the absolute path of the file that contains the urls read from the clueweb files
 
 Target Dir: the absolute path of the root directory which contain the download pages (each url will creat the sub dir for itself)
 
@@ -14,10 +20,14 @@ End Time: Year of the end time, like 2012.
 
 --TODO--
 
-1. Need I consider about the conflict of MD5? I am not sure
+1. Need I to consider about the conflict of MD5? I am not sure.
 
---COMPLETE--
+--VERSIONS--
+0.0.3
+1. Change the input from a folder including many clueweb files to a particular url file.
+2. Add 1's waiting time between each request. 
 
+0.0.2
 1. FileProcess.fileNameTransform 
 Use hash method to name the sub dir of each url, which may be good for search in the next step.
 Method: I use MD5 to hash the url so that I can make the sub dirs have names with the same length. Besides, I record the MD5 codes in the features with the original URLs, so that I can chech the list to know which url a particular MD5 code represents.

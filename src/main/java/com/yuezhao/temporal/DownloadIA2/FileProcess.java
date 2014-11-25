@@ -95,6 +95,36 @@ public class FileProcess {
 		return readURLFromCluewebFiles(sourceFolderPath);
 	}
 	
+	public static List<String> readURLFromURLFile(final File sourceFile) throws IOException{		
+		//	Use to store URLs extracted from the files
+		List<String> listURLS = new ArrayList<String>();
+
+		//	Read the file line by line to find the URL
+		InputStream fis;
+		BufferedReader br;
+		String line;
+			
+		fis = new FileInputStream(sourceFile);
+		br = new BufferedReader(new InputStreamReader(fis));
+			
+		while ((line = br.readLine()) != null) {
+			//	Deal with the line
+			listURLS.add(line);
+		}
+
+		//	Done with the file
+		br.close();
+		br = null;
+		fis = null;
+		
+		return listURLS;
+	}
+	
+	public static List<String> readURLFromURLFile(String sourceFilePath) throws IOException{
+		final File sourceFile = new File(sourceFilePath);
+		return readURLFromURLFile(sourceFile);
+	}
+	
 	public static String fileNameTransform(String URL){
 		char[] listcharURL = URL.toCharArray();
 		String transURL = "";
@@ -107,7 +137,7 @@ public class FileProcess {
 	}
 	
 	public static String fileNameTransform_MD5(String URL) throws NoSuchAlgorithmException{
-		// 	TODO transform the url to be a MD5 code 
+		// 	transform the url to be a MD5 code 
 		byte[] bytesOfMessage = URL.getBytes();
 		
 		MessageDigest md = MessageDigest.getInstance("MD5");		
@@ -128,7 +158,11 @@ public class FileProcess {
 		String subFolderName = fileNameTransform_MD5(originalURL);
 		// not using JAVA 7 API
 		File dir = new File(targetFolder, subFolderName);
-		dir.mkdir();
+		if(!dir.exists())
+			dir.mkdir();
+		else
+			return null;
+		
 		return dir.getAbsolutePath();
 	}
 	
@@ -139,8 +173,11 @@ public class FileProcess {
 		File dir = new File(targetFolder, subFolderName);
 		
 		// TODO avoid the problem that the MD5 conflict, needed?
+		if (!dir.exists())
+			dir.mkdir();
+		else
+			return null;
 		
-		dir.mkdir();
 		return dir;
 	}	
 	

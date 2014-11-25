@@ -13,9 +13,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -118,7 +120,7 @@ public class IADownloader {
 		return urls;		
 	}
 	
-	public static void downloadPages(List<String> urls, String subTargetFolder) throws ClientProtocolException, IOException, URISyntaxException{
+	public static void downloadPages(List<String> urls, String subTargetFolder) throws ClientProtocolException, IOException, URISyntaxException, InterruptedException{
 		for (String url: urls){
 			//	format URL
 			URL url1 = new URL(url);
@@ -126,7 +128,10 @@ public class IADownloader {
 			URI uri = new URI(url1.getProtocol(), url1.getHost(), url1.getPath(), url1.getQuery(), nullFragment);
 			//	http Client
 			CloseableHttpClient httpClient = HttpClients.createDefault();
+			RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build(); 
 			HttpGet httpGet = new HttpGet(uri);
+			httpGet.setConfig(config);
+			//	httpGet.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 1.7; .NET CLR 1.1.4322; CIBA; .NET CLR 2.0.50727)");
 			CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
 			//	int statusCode = httpResponse.getStatusLine().getStatusCode();
 			try {
@@ -146,24 +151,28 @@ public class IADownloader {
 			    bos.close();	        	
 			} finally {
 				httpResponse.close();
+				TimeUnit.SECONDS.sleep(1);
 			}
+			httpClient.close();
 		}	
 	}
 	
-	public static boolean downloadAllVersions(String originalURL,
-			String targetFolder, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException {
+	public static int downloadAllVersions(String originalURL,
+			String targetFolder, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
 		// 	Use wayback machine get feedback from IA
 		JSONArray feedback = wayback(originalURL, startTime, endTime);
 		
 		//	If there is no feedback, return
 		if (feedback.length() < 1 || feedback == null) {
-			return false;
+			return -1;
 		} else {		
 			//	Generate urls belongs to IA based on the feedback
 			List<String> urlsIA = generateIAurls(feedback);
 			
 			//	Generate the sub-folder of this url in the target folder
-			File subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);		
+			File subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);
+			if (subTargetFolder == null)
+				return 0;
 			String subTargetFolderPath = subTargetFolder.getAbsolutePath();
 			
 			//	Download Pages from IA based on the URLs we generate.
@@ -171,7 +180,7 @@ public class IADownloader {
 			
 			//	Write Down the features of the URL
 			writeDownFeatures(subTargetFolder.getName(), originalURL, feedback.length(), urlsIA.size(), feedback, targetFolder);
-			return true;
+			return 1;
 		}
 	}
 
