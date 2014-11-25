@@ -8,6 +8,7 @@ This code is used for downloading all versions of pages based on URL.
 
 Skip the test because the AppTest.class is not implemented.
 
+
 3. java -jar DownloadIA2-0.0.3-SNAPSHOT.jar [Source File Path] [Target Dir] [Start Time] [End Time]
 
 Souce File Path: the absolute path of the file that contains the urls read from the clueweb files
@@ -18,11 +19,15 @@ Start Time: Year of the start time. No earlier than 1996
 
 End Time: Year of the end time, like 2012.
 
+Examle: 
+java -jar DownloadIA2-0.0.3-SNAPSHOT.jar D:\workspace\DownloadIA2\urls_clueweb12_2 D:\temp\testHtml 1996 2012
+
 --TODO--
 
 1. Need I to consider about the conflict of MD5? I am not sure.
 
 --VERSIONS--
+
 0.0.3
 1. Change the input from a folder including many clueweb files to a particular url file.
 2. Add 1's waiting time between each request. 
