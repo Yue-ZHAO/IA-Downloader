@@ -1,6 +1,4 @@
-This code is used for downloading all versions of pages based on URL.
-
-To Claudia: Please use the data urls_clueweb12_2. If there is something wrong, please copy the error log to me. Thanks. 
+This is the 2nd program of sigir2015 for downloading all versions of pages based on URLs extracted by CluewebURLReader.
 
 --Usage--
 
@@ -23,10 +21,6 @@ End Time: Year of the end time, like 2012.
 
 Examle: 
 java -jar DownloadIA2-0.0.3-SNAPSHOT.jar D:\workspace\DownloadIA2\urls_clueweb12_2 D:\temp\testHtml 1996 2012
-
---TODO--
-
-1. Need I to consider about the conflict of MD5? I am not sure.
 
 --VERSIONS--
 
