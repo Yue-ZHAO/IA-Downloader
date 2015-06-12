@@ -120,9 +120,24 @@ public class IADownloader {
 		return urls;		
 	}
 	
-	public static void downloadPages(List<String> urls, String subTargetFolder) throws ClientProtocolException, IOException, URISyntaxException, InterruptedException{
+	public static void downloadPages(List<String> urls, String subTargetFolder, long sleepMS) throws ClientProtocolException, IOException, URISyntaxException, InterruptedException{
+		int i = 0;
 		for (String url: urls){
-			//	format URL
+			
+			//	If the file has been Downloaded, skip to the next one.
+			String fileName = url.substring(28, 40);
+		    //	Now it runs well, but I am not sure is the path like subTargetFolder + fileName + ".html" is good enough.
+		    fileName = fileName + ".html";
+		    File file = new File(subTargetFolder, fileName);
+		    if (file.exists()) {
+		    	System.out.println("Historical version: " + url.substring(28, 40) + " exist. ");
+				i++;
+				System.out.println(i + "/" + urls.size() + " Completed.");
+		    	continue;
+		    }
+		    
+		    long begintime = System.currentTimeMillis();		    
+		    //	format URL
 			URL url1 = new URL(url);
 			String nullFragment = null;
 			URI uri = new URI(url1.getProtocol(), url1.getHost(), url1.getPath(), url1.getQuery(), nullFragment);
@@ -138,45 +153,51 @@ public class IADownloader {
 				HttpEntity httpEntity = httpResponse.getEntity();
 			    InputStream inSm = httpEntity.getContent(); 
 			    // 	Read the input stream of the entity
-			    //	Transfer it in to the file with html format
-			    String fileName = url.substring(27, 40);
-			    //	Now it runs well, but I am not sure is the path like subTargetFolder + fileName + ".html" is good enough.
-			    String htmlFilePath = subTargetFolder + fileName + ".html";
+			    //	Transfer it in to the file with html format			    
+			    // String htmlFilePath = subTargetFolder + fileName + ".html";
 			   	BufferedInputStream bis = new BufferedInputStream(inSm);
-			   	BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(htmlFilePath)));
+			   	// BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(htmlFilePath)));
+			   	BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
 			   	int inByte;
 			   	while((inByte = bis.read()) != -1) 
 			   		bos.write(inByte);
 			    bis.close();
-			    bos.close();	        	
+			    bos.close();
+				System.out.print("Historical version: " + url.substring(28, 40) + ". ");
+				long endtime = System.currentTimeMillis();
+				System.out.print("Time cost is: " + (endtime - begintime) + ". ");
+				i++;
+				System.out.println(i + "/" + urls.size() + " Completed.");
 			} finally {
 				httpResponse.close();
-				TimeUnit.SECONDS.sleep(1);
+				//TimeUnit.SECONDS.sleep(1);
+				TimeUnit.MILLISECONDS.sleep(sleepMS);
 			}
 			httpClient.close();
 		}	
 	}
 	
 	public static int downloadAllVersions(String originalURL,
-			String targetFolder, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+			String targetFolder, String startTime, String endTime, long sleepMS) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
 		// 	Use wayback machine get feedback from IA
 		JSONArray feedback = wayback(originalURL, startTime, endTime);
 		
 		//	If there is no feedback, return
 		if (feedback.length() < 1 || feedback == null) {
 			return -1;
-		} else {		
+		} else {
+			System.out.println("Downloading the historical pages of " + originalURL);
 			//	Generate urls belongs to IA based on the feedback
 			List<String> urlsIA = generateIAurls(feedback);
 			
 			//	Generate the sub-folder of this url in the target folder
 			File subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);
-			if (subTargetFolder == null)
-				return 0;
+//			if (subTargetFolder == null)
+//				return 0;
 			String subTargetFolderPath = subTargetFolder.getAbsolutePath();
 			
 			//	Download Pages from IA based on the URLs we generate.
-			downloadPages(urlsIA, subTargetFolderPath);
+			downloadPages(urlsIA, subTargetFolderPath, sleepMS);
 			
 			//	Write Down the features of the URL
 			writeDownFeatures(subTargetFolder.getName(), originalURL, feedback.length(), urlsIA.size(), feedback, targetFolder);
@@ -200,14 +221,13 @@ public class IADownloader {
 		}		
 		
 		// Generate features
-		String features = "[" +
+		String features = 
 				folderName + ", " + 
 				length + ", " + 
 				size + ", " + 
 				feedback.getJSONArray(1).get(index_Timestamp).toString() + ", " + 
 				feedback.getJSONArray(length-1).get(index_Timestamp).toString() + ", " + 
-				originalURL +
-				"]";
+				originalURL;
 		
 		//	Write Features to the targetFolder
 		File featureFile = new File(targetFolder, "Features");

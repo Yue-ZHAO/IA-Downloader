@@ -1,42 +1,50 @@
+#Internet Archive Downloader 
+
 This code is used for downloading all versions of pages based on URL.
 
-To Claudia: Please use the data urls_clueweb12_2. If there is something wrong, please copy the error log to me. Thanks. 
+##Usage
 
---Usage--
+1. Compile
+```mvn compile```
 
-1. mvn compile
-
-2. mvn clean package -Dmaven.test.skip=true
-
+2. Package
+```mvn clean package -Dmaven.test.skip=true```
 Skip the test because the AppTest.class is not implemented.
 
+3. Run
+```java -jar DownloadIA2.jar /Url_File_Path /Result_folder [Start Time] [End Time] [Extra Waiting Time]```
 
-3. java -jar DownloadIA2-0.0.3-SNAPSHOT.jar [Source File Path] [Target Dir] [Start Time] [End Time]
+Url_File_Path: the absolute path of the file that contains the urls read from the clueweb files
 
-Souce File Path: the absolute path of the file that contains the urls read from the clueweb files
-
-Target Dir: the absolute path of the root directory which contain the download pages (each url will creat the sub dir for itself)
+Result_folder: the absolute path of the root directory which contain the download pages (each url will creat a sub dir for itself)
 
 Start Time: Year of the start time. No earlier than 1996
 
 End Time: Year of the end time, like 2012.
 
-Examle: 
-java -jar DownloadIA2-0.0.3-SNAPSHOT.jar D:\workspace\DownloadIA2\urls_clueweb12_2 D:\temp\testHtml 1996 2012
+Extra Waiting Time: Milliseconds between downloading 2 pages.
 
---TODO--
+##Examle 
+```java -jar DownloadIA2.jar urls_clueweb12_2 /Result 1996 2012 500```
+
+##TODO
 
 1. Need I to consider about the conflict of MD5? I am not sure.
 
---VERSIONS--
+##Update
 
-0.0.3
+###0.0.4
+1. Add more output on screen.  
+2. Add a parameter to set the extra waiting time (n milliseconds) between downloading 2 pages.  
+3. If the particular historical pages have been downloaded before, the program will skip them.
 
-1. Change the input from a folder including many clueweb files to a particular url file.
-2. Add 1's waiting time between each request. 
+###0.0.3
 
-0.0.2
+1. Change the input from a folder including many clueweb files to a particular url file.  
+2. Add 1's waiting time between each request.
 
-1. FileProcess.fileNameTransform 
+###0.0.2
+
+1. FileProcess.fileNameTransform  
 Use hash method to name the sub dir of each url, which may be good for search in the next step.
 Method: I use MD5 to hash the url so that I can make the sub dirs have names with the same length. Besides, I record the MD5 codes in the features with the original URLs, so that I can chech the list to know which url a particular MD5 code represents.

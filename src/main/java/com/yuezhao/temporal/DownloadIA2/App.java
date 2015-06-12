@@ -21,6 +21,7 @@ public class App
         String targetFolder = args[1];
         String startTime = args[2];
         String endTime = args[3];
+        long sleepMS = Long.parseLong(args[4]);
         //	System.out.println(sourceFolder);
         System.out.println(sourceFilePath);
         System.out.println(targetFolder);
@@ -44,15 +45,14 @@ public class App
         for (String OriginalURL: OriginalURLs){
         	//	numOriginal++;
         	// flag: 1:success 0:exist before -1:fail
-        	int flag = IADownloader.downloadAllVersions(OriginalURL, targetFolder, startTime, endTime);
+        	int flag = IADownloader.downloadAllVersions(OriginalURL, targetFolder, startTime, endTime, sleepMS);
         	if (flag == 1 || flag == 0){
         		numRecord++;
         		numOriginal++;
         	} else if (flag == -1) {
         		numOriginal++;
         	}
-        	FileProcess.addLinetoaFile("URL: " + OriginalURL, urlRec.getAbsolutePath());
-        	FileProcess.addLinetoaFile("Status: " + flag + ".\tThe percent of record: " + numRecord + " / " + numOriginal, urlRec.getAbsolutePath());
+        	FileProcess.addLinetoaFile("URL: " + OriginalURL + "\n" + "Status: " + flag + ".\tThe percent of record: " + numRecord + " / " + numOriginal, urlRec.getAbsolutePath());
         	System.out.println("URL: " + OriginalURL);
         	System.out.println("Status: " + flag);
         	System.out.println("The percent of record: " + numRecord + " / " + numOriginal);

@@ -4,7 +4,7 @@
   <groupId>com.yuezhao.temporal</groupId>
   <artifactId>DownloadIA2</artifactId>
   <name>DownloadIA2</name>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.4-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <build>
     <plugins>
@@ -37,14 +37,6 @@
       <id>central</id>
       <name>Central Repository</name>
       <url>http://repo.maven.apache.org/maven2</url>
-    </repository>
-    <repository>
-      <releases />
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>boilerpipe-m2-repo</id>
-      <url>http://boilerpipe.googlecode.com/svn/repo/</url>
     </repository>
   </repositories>
   <dependencies>
