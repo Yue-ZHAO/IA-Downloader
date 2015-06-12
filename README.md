@@ -1,6 +1,7 @@
 #Internet Archive Downloader 
+=======
 
-This code is used for downloading all versions of pages based on URL.
+This code is used for downloading all versions of pages from Internet Archive based on URLs.
 
 ##Usage
 
@@ -8,7 +9,7 @@ This code is used for downloading all versions of pages based on URL.
 ```mvn compile```
 
 2. Package
-```mvn clean package -Dmaven.test.skip=true```
+```mvn clean package -Dmaven.test.skip=true```  
 Skip the test because the AppTest.class is not implemented.
 
 3. Run
@@ -25,7 +26,7 @@ End Time: Year of the end time, like 2012.
 Extra Waiting Time: Milliseconds between downloading 2 pages.
 
 ##Examle 
-```java -jar DownloadIA2.jar urls_clueweb12_2 /Result 1996 2012 500```
+```Java -jar DownloadIA2.jar urls_clueweb12_2 /Result 1996 2012 500```
 
 ##TODO
 
@@ -37,6 +38,7 @@ Extra Waiting Time: Milliseconds between downloading 2 pages.
 1. Add more output on screen.  
 2. Add a parameter to set the extra waiting time (n milliseconds) between downloading 2 pages.  
 3. If the particular historical pages have been downloaded before, the program will skip them.
+
 
 ###0.0.3
 
