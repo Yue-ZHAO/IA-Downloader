@@ -2,8 +2,9 @@ package com.yuezhao.temporal.DownloadIA2;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
+//import java.io.IOException;
+//import java.net.URISyntaxException;
+//import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
  */
 public class App 
 {
-    public static void main(String[] args ) throws IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException
+    public static void main(String[] args ) throws IOException 
     {
         System.out.println( "Hello World!" );
         //	Read args[]
@@ -45,19 +46,28 @@ public class App
         for (String OriginalURL: OriginalURLs){
         	//	numOriginal++;
         	// flag: 1:success 0:exist before -1:fail
-        	int flag = IADownloader.downloadAllVersions(OriginalURL, targetFolder, startTime, endTime, sleepMS);
-        	if (flag == 1 || flag == 0){
-        		numRecord++;
-        		numOriginal++;
-        	} else if (flag == -1) {
-        		numOriginal++;
+        	int flag = -1;
+        	try {
+        		flag = IADownloader.downloadAllVersions(OriginalURL, targetFolder, startTime, endTime, sleepMS);
+        	} catch (Exception e)  {
+        		FileProcess.addLinetoaFile("URL: " + OriginalURL + "\n" + "Exception: " + e.toString(), "ExceptionRecord");
+        		System.out.println("Exception!! URL: " + OriginalURL + "\n" + e.toString());
+        		flag = -1;
+        		continue;
+        	} finally {
+            	if (flag == 1 || flag == 0){
+            		numRecord++;
+            		numOriginal++;
+            	} else if (flag == -1) {
+            		numOriginal++;
+            	}
+            	FileProcess.addLinetoaFile("URL: " + OriginalURL + "\n" + "Status: " + flag + ".\tThe percent of record: " + numRecord + " / " + numOriginal, urlRec.getAbsolutePath());
+            	System.out.println("URL: " + OriginalURL);
+            	System.out.println("Status: " + flag);
+            	System.out.println("The percent of record: " + numRecord + " / " + numOriginal);
+            	System.out.println();
         	}
-        	FileProcess.addLinetoaFile("URL: " + OriginalURL + "\n" + "Status: " + flag + ".\tThe percent of record: " + numRecord + " / " + numOriginal, urlRec.getAbsolutePath());
-        	System.out.println("URL: " + OriginalURL);
-        	System.out.println("Status: " + flag);
-        	System.out.println("The percent of record: " + numRecord + " / " + numOriginal);
-        	System.out.println();
         }
+        System.out.println( "Finished!" );
     }
-
 }

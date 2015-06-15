@@ -9,18 +9,21 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
+//import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+//import org.apache.http.client.HttpClient;
+//import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+//import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -36,42 +39,50 @@ public class IADownloader {
 	 * @throws IOException
 	 * @throws URISyntaxException 
 	 */
-	public static JSONArray wayback(String inputURL, String startTime, String endTime) throws ClientProtocolException, IOException, URISyntaxException{
+	public static JSONArray wayback(String inputURL, String startTime, String endTime) {
 		String cdxURL = "http://web.archive.org/cdx/search/cdx?url=";
 		String originURL = inputURL;
-		JSONArray urlList = null;
-		
+		JSONArray urlList = null;		
 		//	Add some figures about our requests
 		String filterURL = "&from=" + startTime.trim() + "&to=" + endTime.trim() + "&fl=timestamp,original,digest&output=json";
 		String formatURL = cdxURL + originURL + filterURL;
 		//	format URL
-		URL url = new URL(formatURL);
-		String nullFragment = null;
-		URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
-		//	System.out.println("URI " + uri.toString() + " is OK");
-		//	Use http Get to get feedback from Internet Archive
-		CloseableHttpClient httpClient = HttpClients.createDefault();
-		HttpGet httpGet = new HttpGet(uri);
-		CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
-		try{
-		    HttpEntity httpEntity = httpResponse.getEntity();
-	    
+		URL url = null;
+		URI uri = null;
+		CloseableHttpClient httpClient = null;
+		CloseableHttpResponse httpResponse = null;
+		try{		
+			url = new URL(formatURL);
+			String nullFragment = null;
+			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
+			//	System.out.println("URI " + uri.toString() + " is OK");
+			//	Use http Get to get feedback from Internet Archive
+			httpClient = HttpClients.createDefault();
+			HttpGet httpGet = new HttpGet(uri);
+			httpResponse = httpClient.execute(httpGet);
+		    HttpEntity httpEntity = httpResponse.getEntity();	    
 		    InputStream inSm = httpEntity.getContent();  
 	        Scanner inScn = new Scanner(inSm);
 	        String responseString = "";
 	        while (inScn.hasNextLine()) {  
 	        	responseString = responseString + inScn.nextLine();	        	
 	        }
-	        inScn.close();
-	        
+	        inScn.close();	        
 	        //	If the response is error information, or no information
 	        //	Change it to 0 content.
 	        if (!responseString.startsWith("["))
 	        	responseString = "[]";
 	        urlList = new JSONArray(responseString);		    
 		    EntityUtils.consume(httpEntity);			
+		} catch (Exception e) {
+			FileProcess.addLinetoaFile("URL: " + inputURL + "\n" + "Exception: " + e, "ExceptionRecord");
 		} finally {
-			httpResponse.close();
+			try {
+				httpResponse.close();
+				httpClient.close();
+			} catch(Exception e) {
+				FileProcess.addLinetoaFile("URL: " + inputURL + "\n" + "Exception: " + e, "ExceptionRecord");
+			}
 		}
 		return urlList;
 	}
@@ -120,7 +131,7 @@ public class IADownloader {
 		return urls;		
 	}
 	
-	public static void downloadPages(List<String> urls, String subTargetFolder, long sleepMS) throws ClientProtocolException, IOException, URISyntaxException, InterruptedException{
+	public static int downloadPages(List<String> urls, String subTargetFolder, long sleepMS) {
 		int i = 0;
 		for (String url: urls){
 			
@@ -138,18 +149,32 @@ public class IADownloader {
 		    
 		    long begintime = System.currentTimeMillis();		    
 		    //	format URL
-			URL url1 = new URL(url);
-			String nullFragment = null;
-			URI uri = new URI(url1.getProtocol(), url1.getHost(), url1.getPath(), url1.getQuery(), nullFragment);
+			URL url1 = null;
+			URI uri = null;
+			try {
+				url1 = new URL(url);
+				// System.out.println(url1);
+				String nullFragment = null;
+				uri = new URI(url1.getProtocol(), url1.getHost(), url1.getPath(), url1.getQuery(), nullFragment);
+				// URI uri = new URI(url1.getProtocol(), url1.getUserInfo(), url1.getHost(), url1.getPort(), url1.getPath(), url1.getQuery(), url1.getRef());
+				// System.out.println(uri);
+			} catch (Exception e) {
+				FileProcess.addLinetoaFile("URL: " + url + "\n" + "Exception: " + e, "ExceptionRecord");
+				return -1;
+			}
 			//	http Client
-			CloseableHttpClient httpClient = HttpClients.createDefault();
-			RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build(); 
-			HttpGet httpGet = new HttpGet(uri);
-			httpGet.setConfig(config);
+			CloseableHttpClient httpClient = HttpClients.createDefault();			
+			//CloseableHttpClient httpClient = HttpClients.custom().setRedirectStrategy(urlSanitizeRedirectStrategy);
+			RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+			//RequestConfig config = RequestConfig.custom().setRedirectsEnabled(false).setCircularRedirectsAllowed(true).build();
+
 			//	httpGet.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; QQDownload 1.7; .NET CLR 1.1.4322; CIBA; .NET CLR 2.0.50727)");
-			CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
+			CloseableHttpResponse httpResponse = null;			
 			//	int statusCode = httpResponse.getStatusLine().getStatusCode();
 			try {
+				HttpGet httpGet = new HttpGet(uri);
+				httpGet.setConfig(config);				
+				httpResponse = httpClient.execute(httpGet);
 				HttpEntity httpEntity = httpResponse.getEntity();
 			    InputStream inSm = httpEntity.getContent(); 
 			    // 	Read the input stream of the entity
@@ -168,19 +193,38 @@ public class IADownloader {
 				System.out.print("Time cost is: " + (endtime - begintime) + ". ");
 				i++;
 				System.out.println(i + "/" + urls.size() + " Completed.");
+			} catch(Exception e) {
+				FileProcess.addLinetoaFile("URL: " + url + "\n" + "Exception: " + e, "ExceptionRecord");
+				return -1;
 			} finally {
-				httpResponse.close();
-				//TimeUnit.SECONDS.sleep(1);
-				TimeUnit.MILLISECONDS.sleep(sleepMS);
+				try {
+					httpResponse.close();
+					TimeUnit.MILLISECONDS.sleep(sleepMS);
+				} catch (Exception e) {
+					FileProcess.addLinetoaFile("URL: " + url + "\n" + "Exception: " + e, "ExceptionRecord");
+					return -1;
+				}
 			}
-			httpClient.close();
-		}	
+			try {
+				httpClient.close();
+			} catch (Exception e) {
+				FileProcess.addLinetoaFile("URL: " + url + "\n" + "Exception: " + e, "ExceptionRecord");
+				return -1;
+			}
+		}
+		return 1;
 	}
 	
 	public static int downloadAllVersions(String originalURL,
-			String targetFolder, String startTime, String endTime, long sleepMS) throws ClientProtocolException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+			String targetFolder, String startTime, String endTime, long sleepMS) {
 		// 	Use wayback machine get feedback from IA
-		JSONArray feedback = wayback(originalURL, startTime, endTime);
+		JSONArray feedback = null;
+		try {
+			feedback = wayback(originalURL, startTime, endTime);
+		} catch (Exception e) {
+			FileProcess.addLinetoaFile("URL: " + originalURL + "\n" + "Exception: " + e, "ExceptionRecord");
+			return -1;
+		}
 		
 		//	If there is no feedback, return
 		if (feedback.length() < 1 || feedback == null) {
@@ -191,14 +235,26 @@ public class IADownloader {
 			List<String> urlsIA = generateIAurls(feedback);
 			
 			//	Generate the sub-folder of this url in the target folder
-			File subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);
-//			if (subTargetFolder == null)
-//				return 0;
-			String subTargetFolderPath = subTargetFolder.getAbsolutePath();
+			File subTargetFolder = null;
 			
-			//	Download Pages from IA based on the URLs we generate.
-			downloadPages(urlsIA, subTargetFolderPath, sleepMS);
+			try {
+				subTargetFolder = FileProcess.generateSubFolder(originalURL, targetFolder);
+				if (subTargetFolder == null) {
+					System.out.println("Historical File existed: " + originalURL);
+					return 0;
+				}
+				String subTargetFolderPath = subTargetFolder.getAbsolutePath();
+				//	Download Pages from IA based on the URLs we generate.
+				int flag = downloadPages(urlsIA, subTargetFolderPath, sleepMS);
+				if (flag == -1)
+					return -1;
+			} catch (Exception e) {
+				System.out.println("Exception: " + e);
+				FileProcess.addLinetoaFile("URL: " + originalURL + "\n" + "Exception: " + e, "ExceptionRecord");
+				return -1;
+			}
 			
+			System.out.println("Downloaded ALL: " + originalURL);
 			//	Write Down the features of the URL
 			writeDownFeatures(subTargetFolder.getName(), originalURL, feedback.length(), urlsIA.size(), feedback, targetFolder);
 			return 1;
@@ -233,6 +289,8 @@ public class IADownloader {
 		File featureFile = new File(targetFolder, "Features");
 		FileProcess.addLinetoaFile(features, featureFile.getAbsolutePath());
 	}
+	
+	
 
 
 	/**

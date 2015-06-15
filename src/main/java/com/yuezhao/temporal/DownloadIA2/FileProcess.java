@@ -175,8 +175,8 @@ public class FileProcess {
 		// TODO avoid the problem that the MD5 conflict, needed?
 		if (!dir.exists())
 			dir.mkdir();
-//		else
-//			return null;
+		else
+			return null;
 		
 		return dir;
 	}	
