@@ -81,5 +81,12 @@
 	  <artifactId>httpclient</artifactId>
 	  <version>4.3.5</version>
 	</dependency>	
+	
+	<dependency>
+	  <groupId>org.apache.commons</groupId>
+	  <artifactId>commons-compress</artifactId>
+	  <version>1.9</version>
+    </dependency>
+	
   </dependencies>
 </project>

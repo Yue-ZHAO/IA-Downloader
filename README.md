@@ -13,7 +13,7 @@ This code is used for downloading all versions of pages from Internet Archive ba
 Skip the test because the AppTest.class is not implemented.
 
 3. Run
-```java -jar DownloadIA2.jar /Url_File_Path /Result_folder [Start Time] [End Time] [Extra Waiting Time]```
+```java -jar DownloadIA2.jar /Url_File_Path /Result_folder [Start Time] [End Time] [Extra Waiting Time] [Timeout Time]```
 
 Url_File_Path: the absolute path of the file that contains the urls read from the clueweb files
 
@@ -25,14 +25,21 @@ End Time: Year of the end time, like 2012.
 
 Extra Waiting Time: Milliseconds between downloading 2 pages.
 
+Timeout time: Milliseconds of the timeout of the connection and response, like 1 minutes (60000ms).
+
 ##Examle 
-```Java -jar DownloadIA2.jar urls_clueweb12_2 /Result 1996 2012 500```
+```Java -jar DownloadIA2.jar urls_clueweb12_2 /Result 1996 2012 500 60000```
 
 ##TODO
 
 1. Need I to consider about the conflict of MD5? I am not sure.
 
 ##Update
+
+###0.0.5
+1. Add gzip: when a url is finished, the downloaded pages will be compressed into a .tar.gz file to reduce the space
+2. Add a timeout parameter: for connection and response time.
+3. Add a stop condition: if exceptions of http client occur more than 50 times consequentially, the program will stop.
 
 ###0.0.4
 1. Add more output on screen.  

@@ -1,8 +1,10 @@
 package com.yuezhao.temporal.DownloadIA2;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,8 +12,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
 public class FileProcess {
 
@@ -158,11 +165,11 @@ public class FileProcess {
 		String subFolderName = fileNameTransform_MD5(originalURL);
 		// not using JAVA 7 API
 		File dir = new File(targetFolder, subFolderName);
-		if(!dir.exists())
-			dir.mkdir();
-		else
+		File dirgz = new File(dir.getAbsolutePath() + ".tar.gz");
+		if (dir.exists() || dirgz.exists())
 			return null;
-		
+		else
+			dir.mkdir();		
 		return dir.getAbsolutePath();
 	}
 	
@@ -171,13 +178,12 @@ public class FileProcess {
 		String subFolderName = fileNameTransform_MD5(originalURL);
 		// not using JAVA 7 API
 		File dir = new File(targetFolder, subFolderName);
-		
+		File dirgz = new File(dir.getAbsolutePath() + ".tar.gz");
 		// TODO avoid the problem that the MD5 conflict, needed?
-		if (!dir.exists())
-			dir.mkdir();
-		else
+		if (dir.exists() || dirgz.exists())
 			return null;
-		
+		else
+			dir.mkdir();		
 		return dir;
 	}	
 	
@@ -202,7 +208,69 @@ public class FileProcess {
 		}
 	}
 
-	public static void main(String[] args) {
-
+	public static void main(String[] args) throws IOException {
+		fileToGzip(args[0]);
+		fileDelete(args[0]);
 	}
+	
+	public static void fileToGzip(String orgFilePath) throws IOException {
+		// transfor a file or folder to gzip, and remove the original one
+		File orgFile = new File(orgFilePath);
+		if (orgFile.exists()) {
+			//	Indicate the output file and output streams
+			File outFile = new File(orgFile.getAbsolutePath() + ".tar.gz");
+			if(!outFile.exists()){
+                outFile.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(outFile);
+            TarArchiveOutputStream taos = new TarArchiveOutputStream(new GZIPOutputStream(new BufferedOutputStream(fos)));
+            taos.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR); 
+            taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+            //	Check the input file
+            addFileToTarGz(taos, orgFile.getAbsolutePath(), "");
+			taos.close();
+		} 		
+	}
+	
+	public static void fileDelete(String filePath) {
+		File file = new File(filePath);
+		fileDelete(file);
+	}
+	
+	public static void fileDelete(File file) {
+		if (file.exists()) {
+			if (file.isFile())
+				file.delete();
+			else if (file.isDirectory()) {
+				File[] children = file.listFiles();
+				if (children != null){
+	                for (File child : children) {
+	                	fileDelete(child);
+	                }
+	            }
+				file.delete();
+			}
+		}
+	}
+	private static void addFileToTarGz(TarArchiveOutputStream tOut, String path, String base) throws IOException {
+        File f = new File(path);
+        System.out.println(f.exists());
+        String entryName = base + f.getName();
+        TarArchiveEntry tarEntry = new TarArchiveEntry(f, entryName);
+        tOut.putArchiveEntry(tarEntry);
+
+        if (f.isFile()) {
+            IOUtils.copy(new FileInputStream(f), tOut);
+            tOut.closeArchiveEntry();
+        } else {
+            tOut.closeArchiveEntry();
+            File[] children = f.listFiles();
+            if (children != null){
+                for (File child : children) {
+                    System.out.println(child.getName());
+                    addFileToTarGz(tOut, child.getAbsolutePath(), entryName + "/");
+                }
+            }
+        }
+    }
 }
