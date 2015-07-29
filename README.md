@@ -36,10 +36,13 @@ Timeout time: Milliseconds of the timeout of the connection and response, like 1
 
 ##Update
 
+
+
 ###0.0.5
 1. Add gzip: when a url is finished, the downloaded pages will be compressed into a .tar.gz file to reduce the space
 2. Add a timeout parameter: for connection and response time.
 3. Add a stop condition: if exceptions of http client occur more than 50 times consequentially, the program will stop.
+4. Add trim() before processing urls in order to avoid whitespaces which affect values of generated md5
 
 ###0.0.4
 1. Add more output on screen.  

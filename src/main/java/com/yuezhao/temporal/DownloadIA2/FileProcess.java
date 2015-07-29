@@ -116,7 +116,7 @@ public class FileProcess {
 			
 		while ((line = br.readLine()) != null) {
 			//	Deal with the line
-			listURLS.add(line);
+			listURLS.add(line.trim());
 		}
 
 		//	Done with the file
@@ -145,7 +145,7 @@ public class FileProcess {
 	
 	public static String fileNameTransform_MD5(String URL) throws NoSuchAlgorithmException{
 		// 	transform the url to be a MD5 code 
-		byte[] bytesOfMessage = URL.getBytes();
+		byte[] bytesOfMessage = URL.trim().getBytes();
 		
 		MessageDigest md = MessageDigest.getInstance("MD5");		
 		md.update(bytesOfMessage);		
